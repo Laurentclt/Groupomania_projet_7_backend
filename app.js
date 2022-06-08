@@ -15,23 +15,13 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use((req, res, next) => {
-  console.log('Requête reçue !');
-  next();
-});
+const postRoutes = require('./routes/post')
+const userRoutes = require('./routes/user')
 
-app.use((req, res, next) => {
-  res.status(201);
-  next();
-});
+app.use('/api/posts', postRoutes) 
+app.use('/api', userRoutes) 
 
-app.use((req, res, next) => {
-  res.json({ message: 'Votre requête a bien été reçue !' });
-  next();
-});
 
-app.use((req, res, next) => {
-  console.log('Réponse envoyée avec succès !');
-});
+
 
 module.exports = app;
