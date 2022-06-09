@@ -15,6 +15,8 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(express.json());
+
 const postRoutes = require('./routes/post')
 const userRoutes = require('./routes/user')
 
