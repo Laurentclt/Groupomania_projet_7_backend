@@ -1,10 +1,7 @@
-const Post  = require('../models/Post.js');
-
-
+const Post  = require('../models/Post');
 
 
 exports.getAllPosts = (req, res, next) => {
-    console.log("requête reçue")
     Post.find().then((posts) => {
         console.log(posts)
         res.status(200).json(posts);
@@ -15,7 +12,6 @@ exports.getAllPosts = (req, res, next) => {
 }
 
 exports.getPost = (req, res, next) => {
-    console.log('affiche post')
     Post.findOne().then((post) => {
         console.log(post)
         res.status(200).json(post);
@@ -23,17 +19,35 @@ exports.getPost = (req, res, next) => {
 }
 
 exports.addPost = (req, res, next) => {
-    const newPost = req.body
-
-    res.status(200)
+    const post = new Post({
+        ...req.body
+    });
+    post.save()
+        .then(() => res.status(201).json({ message: 'publication ajoutée !'}))
+        .catch(error => res.status(400).json({ error }));
 }
 
 exports.deletePost = (req, res, next) => {
-    console.log("post supprimé")
-    res.status(200)
+    Post.findOneAndDelete( {_id: req.params.id}, function (err, doc) {
+        if (err) {
+            res.status(500).json({ error })
+        }
+        else {
+            console.log(doc)
+            res.status(200).json({ message: 'publication supprimée'})
+        }
+    })
 }
 exports.updatePost =  (req, res, next) => {
-    console.log("post modifié")
+    Post.findOneAndUpdate({_id: req.params.id}, {...req.body}, function(err, doc) {
+        if (err) {
+            res.status(500).json ({ error })
+        }
+        else {
+            console.log(doc)
+            res.status(200).json({ message : 'publication modifiée'})
+        }
+    })
     res.status(200)
 };
 

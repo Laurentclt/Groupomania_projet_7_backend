@@ -21,7 +21,7 @@ const postRoutes = require('./routes/post')
 const userRoutes = require('./routes/user')
 
 app.use('/api/posts', postRoutes) 
-app.use('/api', userRoutes) 
+app.use('/api/auth', userRoutes) 
 
 
 
