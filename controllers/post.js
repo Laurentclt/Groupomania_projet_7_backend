@@ -19,8 +19,19 @@ exports.getPost = (req, res, next) => {
 }
 
 exports.addPost = (req, res, next) => {
+    let datePost = new Date();
+
+    let dateLocale = datePost.toLocaleString('fr-FR',{
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'});
     const post = new Post({
-        ...req.body
+        ...req.body,
+        date: dateLocale
     });
     post.save()
         .then(() => res.status(201).json({ message: 'publication ajoutée !'}))

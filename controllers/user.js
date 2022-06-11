@@ -44,3 +44,22 @@ exports.login = (req, res, next) => {
         .catch(error => res.status(500).json({ error}))
 }
 
+exports.getOneUser = (req, res, next) => {
+    User.findOne().then((user) => {
+        console.log(user)
+        res.status(200).json(post);
+    })   
+}
+
+
+exports.deleteUser = (req, res, next) => {
+    User.findOneAndDelete( {pseudo: req.params.pseudo}, function (err, doc) {
+        if (err) {
+            res.status(500).json({ error })
+        }
+        else {
+            console.log(doc)
+            res.status(200).json({ message: 'utilisateur supprimé !'})
+        }
+    })
+}

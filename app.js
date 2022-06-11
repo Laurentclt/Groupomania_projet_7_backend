@@ -18,10 +18,11 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 const postRoutes = require('./routes/post')
+
 const userRoutes = require('./routes/user')
 
 app.use('/api/posts', postRoutes) 
-app.use('/api/auth', userRoutes) 
+app.use('/api/user', userRoutes)
 
 
 
