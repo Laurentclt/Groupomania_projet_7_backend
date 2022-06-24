@@ -51,6 +51,7 @@ exports.deletePost = (req, res, next) => {
 }
 exports.updatePost =  (req, res, next) => {
     Post.findOneAndUpdate({_id: req.params.id}, {...req.body}, function(err, doc) {
+        // test secu
         if (err) {
             res.status(500).json ({ error })
         }
@@ -63,6 +64,7 @@ exports.updatePost =  (req, res, next) => {
 };
 
 exports.addLike = (req, res, next) => {
+    usersLiked.push(req.body.userId)
     console.log('like ajouté')
     res.status(200)
 }

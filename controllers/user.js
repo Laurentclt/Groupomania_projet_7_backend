@@ -36,7 +36,10 @@ exports.login = (req, res, next) => {
                             {userId: user._id},
                             "RANDOM_TOKEN_SECRET",
                             {expiresIn: "24h"}
-                        )
+                        ),
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        email: user.email
                     });
                 })
                 .catch(error => res.status(500).json({ error }))
@@ -46,20 +49,34 @@ exports.login = (req, res, next) => {
 
 exports.getOneUser = (req, res, next) => {
     User.findOne().then((user) => {
-        console.log(user)
-        res.status(200).json(post);
+        res.status(200).json({ message: `profil demandé : ${user}`});
     })   
 }
 
-
-exports.deleteUser = (req, res, next) => {
-    User.findOneAndDelete( {pseudo: req.params.pseudo}, function (err, doc) {
-        if (err) {
+exports.updateUser = (req, res, next) => {
+    User.findOneAndUpdate( {_id: req.body.userId},{...req.body}, function (err) {
+        if ( req.body.userId !== _id){
+            res.status(401).json({error : 'requête non autorisée'})
+        }
+        else if (err) {
             res.status(500).json({ error })
         }
         else {
-            console.log(doc)
-            res.status(200).json({ message: 'utilisateur supprimé !'})
+            res.status(200).json({message: "profil modifié"})
+        }
+    })
+}
+
+exports.deleteUser = (req, res, next) => {
+    User.findOneAndDelete( {id: req.params.id}, function (err, doc) {
+        if ( req.body.userId !== _id){
+            res.status(401).json({error : 'requête non autorisée'})
+        }
+        else if (err) {
+            res.status(500).json({ error })
+        }
+        else {
+            res.status(200).json({ message : "compte supprimé"})
         }
     })
 }
