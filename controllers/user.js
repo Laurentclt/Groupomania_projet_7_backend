@@ -48,35 +48,41 @@ exports.login = (req, res, next) => {
 }
 
 exports.getOneUser = (req, res, next) => {
-    User.findOne().then((user) => {
-        res.status(200).json({ message: `profil demandé : ${user}`});
-    })   
+    User.findOne({_id: req.params.id})
+    .then(user => {
+        res.status(200).json(user);
+    })
+    .catch((e) => new Error (`utilisateur non trouvé : ${e}`))   
 }
 
 exports.updateUser = (req, res, next) => {
-    User.findOneAndUpdate( {_id: req.body.userId},{...req.body}, function (err) {
-        if ( req.body.userId !== _id){
-            res.status(401).json({error : 'requête non autorisée'})
-        }
-        else if (err) {
-            res.status(500).json({ error })
-        }
-        else {
-            res.status(200).json({message: "profil modifié"})
-        }
+    if (req.body.userId !== req.auth.userId) {
+        res.status(401).json({
+          error: new Error("requête non autorisée!").message,
+        });
+    }
+    User.findOneAndUpdate( {_id: req.body.userId},
+        {...req.body, imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`}, function (err) {
+            if (err) {
+                res.status(500).json({ error })
+            }
+            else {
+                res.status(200).json({message: "profil modifié"})
+            }
     })
 }
-
 exports.deleteUser = (req, res, next) => {
-    User.findOneAndDelete( {id: req.params.id}, function (err, doc) {
-        if ( req.body.userId !== _id){
-            res.status(401).json({error : 'requête non autorisée'})
-        }
-        else if (err) {
+    if (req.body.userId !== req.auth.userId) {
+        res.status(401).json({
+          error: new Error("requête non autorisée!").message,
+        });
+    }
+    User.findOneAndDelete( {_id: req.body.userId}, function (err, doc) {
+        if (err) {
             res.status(500).json({ error })
         }
         else {
-            res.status(200).json({ message : "compte supprimé"})
+            res.status(200).json({ message : `compte supprimé : ${doc} `})
         }
     })
 }

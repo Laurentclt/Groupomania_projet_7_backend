@@ -8,11 +8,10 @@ module.exports = (req, res, next) => {
     if (req.body.userId && req.body.userId !== userId) {
       throw 'Invalid user ID';
     } else {
-      next();
+      req.auth = {userId};
+      next()
     }
-  } catch {
-    res.status(401).json({
-      error: new Error('Invalid request!')
-    });
-  }
-};
+  } catch (error) {
+    res.status(401).json({error: error | 'requête non authentifiée'})
+}
+}

@@ -4,6 +4,7 @@ const postSchema = mongoose.Schema({
   userId: { type: String, required: true },
   content: { type: String, required: true },
   date: {type: String, required: true },
+  chrono: {type: Number, required: true},
   imageUrl: { type: String},
   likes: { type: Number},
   usersLiked : { type: Array},

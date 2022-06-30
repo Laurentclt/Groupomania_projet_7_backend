@@ -31,7 +31,11 @@ exports.addPost = (req, res, next) => {
         second: 'numeric'});
     const post = new Post({
         ...req.body,
-        date: dateLocale
+        date: dateLocale,
+        chrono: Date.now(),
+        imageUrl: req.file
+        ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+        : '',
     });
     post.save()
         .then(() => res.status(201).json({ message: 'publication ajoutée !'}))
