@@ -46,7 +46,7 @@ exports.login = (req, res, next) => {
         })
         .catch(error => res.status(500).json({ error}))
 }
-
+    
 exports.getOneUser = (req, res, next) => {
     User.findOne({_id: req.params.id})
     .then(user => {
@@ -62,12 +62,16 @@ exports.updateUser = (req, res, next) => {
         });
     }
     User.findOneAndUpdate( {_id: req.body.userId},
-        {...req.body, imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`}, function (err) {
+        {...req.body,
+        imageProfil: req.file
+        ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+        :''},
+        {new: true}, function (err, doc) {
             if (err) {
                 res.status(500).json({ error })
             }
             else {
-                res.status(200).json({message: "profil modifié"})
+                res.status(200).json(doc)
             }
     })
 }

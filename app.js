@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose')
+const path = require('path')
 
 mongoose.connect('mongodb+srv://laurent:collet@groupomania.bvj4dic.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true,
 useUnifiedTopology: true })
@@ -23,6 +24,8 @@ const userRoutes = require('./routes/user')
 
 app.use('/api/posts', postRoutes) 
 app.use('/api/user', userRoutes)
+app.use('/images', express.static(path.join(__dirname, 'images')))
+
 
 
 
