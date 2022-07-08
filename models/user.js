@@ -7,7 +7,6 @@ const userSchema = mongoose.Schema({
   lastName: { type: String, required: true },
   imageProfil: {type: String},
   isAdmin: { type : Boolean}
-
 });
 
 module.exports = mongoose.model('User', userSchema);

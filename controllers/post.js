@@ -1,5 +1,8 @@
 const Post  = require('../models/Post');
+const User = require('../models/User')
 const Comment = require ('../models/Comment')
+const fs = require("fs");
+
 
 const newDate = () => {
     let datePost = new Date();
@@ -15,16 +18,56 @@ const newDate = () => {
     return localDate
 }
 
-exports.getAllPosts = (req, res, next) => {
-    let index = Number(req.query.limit)
-    let sum = 0 - index
-    let acc = index + sum
-    Post.find().sort({"chrono": -1}).then((posts) => {
-        res.status(200).json(posts);
-    })
-    .catch((error) => {
-        res.status(400).json({error})
-    })
+exports.getAllPosts =  (req, res, next) => {
+    Comment.aggregate([
+        {
+          '$lookup': {
+            'from': 'users', 
+            'localField': 'userId', 
+            'foreignField': '_id', 
+            'as': 'user'
+          }
+        }, {
+          '$out': 'commentUsers'
+        }
+      ]).exec((err, result)=>{
+        if (err) {
+            console.log("error" ,err)
+        }
+        if (result) {
+            Post.aggregate([
+                {
+                  '$lookup': {
+                    'from': 'users', 
+                    'localField': 'userId', 
+                    'foreignField': '_id', 
+                    'as': 'user'
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'commentUsers', 
+                    'localField': '_id', 
+                    'foreignField': 'postId', 
+                    'as': 'comments'
+                  }
+                },
+            ]).exec((err, result)=>{
+                if (err) {
+                    console.log("error" ,err)
+                }
+                if (result) {
+                console.log({result})
+        
+                Post.find().sort({"chrono": -1}).then(() => {
+                    res.status(200).json(result);
+                })
+                .catch((error) => {
+                    res.status(400).json({error})
+                })
+                }
+            });
+        }
+        })
 }
 
 exports.getPost = (req, res, next) => {
@@ -56,6 +99,12 @@ exports.deletePost = (req, res, next) => {
                 res.status(500).json({ error })
             }
             else {
+                const filename = doc.imageUrl.split('/images/')[1];
+                fs.unlink(`images/${filename}`, (error) => {
+                    if (error) {
+                    res.status(500).json({message: error})
+                    }
+                })
                 res.status(200).json({doc})
             }
     
@@ -66,6 +115,7 @@ exports.deletePost = (req, res, next) => {
 }
 exports.updatePost =  (req, res, next) => {
     if (req.body.userId === req.auth.userId) {
+        // enlever l'image si req.file
         Post.findOneAndUpdate({_id: req.params.id},
             {
             ...req.body,
@@ -79,6 +129,13 @@ exports.updatePost =  (req, res, next) => {
                 res.status(500).json ({ error })
             }
             else {
+               
+                // const filename = imageUrl.split('/images/')[1];
+                // fs.unlink(`images/${filename}`, (error) => {
+                //     if (error) {
+                //     res.status(500).json({message: error})
+                //     }
+                // })
                 res.status(200).json({doc})
             }
         })
@@ -124,15 +181,34 @@ exports.addComment = (req, res, next) => {
 
 }
 
-exports.getComments = (req, res, next) => { 
-    Comment.find({ postId : req.params.id }).then((comments) => {
-        res.status(200).json(comments);
-    })
-    .catch((error) => {
-        res.status(400).json({error})
-    })
+// exports.getComments = (req, res, next) => { 
+//     Comment.aggregate([
+//         {
+//           '$lookup': {
+//             'from': 'users', 
+//             'localField': 'userId', 
+//             'foreignField': '_id', 
+//             'as': 'user'
+//           }
+//         }
+//       ]).exec((err, result)=>{
+//         if (err) {
+//             console.log("error" ,err)
+//         }
+//         if (result) {
+//         console.log({result})
 
-}
+//         Comment.find().sort({"chrono": -1}).then(() => {
+//             res.status(200).json(result);
+//         })
+//         .catch((error) => {
+//             res.status(400).json({error})
+//         })
+//         }
+//     });
+// }
+    
+    
 exports.deleteComment = (req, res, next) => {
     console.log(req.auth.userId)
     if (req.body.userId === req.auth.userId) {

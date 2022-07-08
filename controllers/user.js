@@ -71,6 +71,12 @@ exports.updateUser = (req, res, next) => {
                 res.status(500).json({ error })
             }
             else {
+                // const filename = imageUrl.split('/images/')[1];
+                // fs.unlink(`images/${filename}`, (error) => {
+                //     if (error) {
+                //     res.status(500).json({message: error})
+                //     }
+                // })
                 res.status(200).json(doc)
             }
     })
@@ -86,6 +92,12 @@ exports.deleteUser = (req, res, next) => {
             res.status(500).json({ error })
         }
         else {
+        const filename = doc.imageUrl.split('/images/')[1];
+        fs.unlink(`images/${filename}`, (error) => {
+            if (error) {
+            res.status(500).json({message: error})
+            }
+        })
             res.status(200).json({ message : `compte supprimé : ${doc} `})
         }
     })
