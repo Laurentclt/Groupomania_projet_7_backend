@@ -3,7 +3,6 @@ const User = require("../models/User");
 const Comment = require("../models/Comment");
 const fs = require("fs");
 
-
 const newDate = () => {
   let datePost = new Date();
 
@@ -76,28 +75,29 @@ exports.getAllPosts = (req, res, next) => {
   });
 };
 
-// controller non utilisé
-exports.getPost = (req, res, next) => {
-  Post.findOne().then((post) => {
-    res.status(200).json(post);
-  });
-};
-
 // vérification effectuée !
 exports.addPost = (req, res, next) => {
-    const post = new Post({
-      ...req.body,
-      userId: req.auth.userId,
-      date: newDate(),
-      chrono: Date.now(),
-      imageUrl: req.file
-        ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
-        : "",
-    });
-    post
-      .save()
-      .then(() => res.status(201).json({ message: "publication ajoutée !" }))
-      .catch((error) => res.status(400).json({ error }));
+  const post = new Post({
+    ...req.body,
+    userId: req.auth.userId,
+    date: newDate(),
+    chrono: Date.now(),
+    imageUrl: req.file
+      ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+      : "",
+  });
+  post
+    .save()
+    .then((post) => {
+      User.find({ _id: req.auth.userId }).then((user) => {
+        console.log({ user });
+        const copyPost = JSON.parse(JSON.stringify(post));
+        copyPost.user = user;
+        console.log(copyPost);
+        res.status(201).json(copyPost);
+      });
+    })
+    .catch((error) => res.status(400).json({ error }));
 };
 
 // vérification effectuée !
@@ -107,7 +107,7 @@ exports.deletePost = (req, res, next) => {
     console.log(userPost[0]);
     User.findOne({ _id: req.auth.userId }).then((data) => {
       console.log(data.isAdmin);
-      admin = data.isAdmin;
+      let admin = data.isAdmin;
 
       if (userPost[0] === req.auth.userId || admin) {
         Post.findOneAndDelete({ _id: req.params.id }, function (err, doc) {
@@ -121,7 +121,7 @@ exports.deletePost = (req, res, next) => {
               }
             });
             console.log(doc);
-            res.status(200).json({ doc });
+            res.status(200).json(doc);
           }
         });
       } else {
@@ -134,44 +134,46 @@ exports.deletePost = (req, res, next) => {
 
 // vérification effectuée !
 exports.updatePost = (req, res, next) => {
-    Post.findOne({ _id: req.params.id }).then((post) => {
-        let userPost = post.userId.toLocaleString().split('"');
-        console.log(userPost[0]);
-        User.findOne({ _id: req.auth.userId }).then((user) => {
-          admin = user.isAdmin;
-          if (userPost[0] === req.auth.userId || admin) {
-            if (req.file) {
-                const filename = post.imageUrl.split('/images/')[1];
-                  fs.unlink(`images/${filename}`, (error) => {
-                      if (error) {
-                      console.log("pas d'image")
-                      }
-                  })
+  Post.findOne({ _id: req.params.id }).then((post) => {
+    let userPost = post.userId.toLocaleString().split('"');
+    console.log(userPost[0]);
+    User.findOne({ _id: req.auth.userId }).then((user) => {
+      let admin = user.isAdmin;
+      if (userPost[0] === req.auth.userId || admin) {
+        if (req.file) {
+          const filename = post.imageUrl.split("/images/")[1];
+          fs.unlink(`images/${filename}`, (error) => {
+            if (error) {
+              console.log("pas d'image");
             }
-            Post.findOneAndUpdate(
-              { _id: req.params.id },
-              {
-                ...req.body,
-                date: newDate(),
-                chrono: Date.now(),
-                imageUrl: req.file
-                  ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
-                  : post.imageUrl,
-              },
-              { new: true },
-              function (err, doc) {
-                if (err) {
-                  res.status(200).json({ error });
-                } else {
-                  res.status(200).json({ doc });
-                }
-              }
-            );
-        } else {
-            res.status(401).json("Unauthorized request");
+          });
         }
-    })
-    })  
+        Post.findOneAndUpdate(
+          { _id: req.params.id },
+          {
+            ...req.body,
+            date: newDate(),
+            chrono: Date.now(),
+            imageUrl: req.file
+              ? `${req.protocol}://${req.get("host")}/images/${
+                  req.file.filename
+                }`
+              : post.imageUrl,
+          },
+          { new: true },
+          function (err, doc) {
+            if (err) {
+              res.status(200).json({ error });
+            } else {
+              res.status(200).json(doc);
+            }
+          }
+        );
+      } else {
+        res.status(401).json("Unauthorized request");
+      }
+    });
+  });
 };
 // vérification effectuée
 exports.addLike = (req, res, next) => {
@@ -212,15 +214,14 @@ exports.addComment = (req, res, next) => {
   comment
     .save()
     .then((comment) => {
-        User.find({ _id : req.auth.userId})
-        .then(user => {
-            console.log({user})
-            const copyComment = JSON.parse(JSON.stringify(comment))
-            copyComment.user = user
-            console.log(copyComment)
-            res.status(201).json(copyComment)
-        })
-      })
+      User.find({ _id: req.auth.userId }).then((user) => {
+        console.log({ user });
+        const copyComment = JSON.parse(JSON.stringify(comment));
+        copyComment.user = user;
+        console.log(copyComment);
+        res.status(201).json(copyComment);
+      });
+    })
     .catch((error) => res.status(400).json({ error }));
 };
 
@@ -229,44 +230,50 @@ exports.deleteComment = (req, res, next) => {
   Comment.findOne({ _id: req.params.id }).then((data) => {
     let userComment = data.userId.toLocaleString().split('"');
     console.log(userComment[0]);
-    if (userComment[0] === req.auth.userId) {
-      Comment.findOneAndDelete({ _id: req.params.id }, function (err, doc) {
-        if (err) {
-          res.status(500).json({ error });
-        } else {
-          console.log("succes");
-          res.status(200).json({ doc });
-        }
-      });
-    } else {
-      res.status(401).json("Unauthorized request");
-    }
+    User.findOne({ _id: req.auth.userId }).then((user) => {
+      let admin = user.isAdmin;
+      if (userComment[0] === req.auth.userId || admin) {
+        Comment.findOneAndDelete({ _id: req.params.id }, function (err, doc) {
+          if (err) {
+            res.status(500).json({ error });
+          } else {
+            console.log("succes");
+            res.status(200).json(doc);
+          }
+        });
+      } else {
+        res.status(401).json("Unauthorized request");
+      }
+    });
   });
 };
 // minuscule problème lors de l'update la chronologie n'est pas respecté => voir front pour regler le soucis
 exports.updateComment = (req, res, next) => {
-    Comment.findOne({ _id: req.params.id }).then((data) => {
-        let userComment = data.userId.toLocaleString().split('"');
-        console.log(userComment[0]);
-        if (userComment[0] === req.auth.userId) {
-        Comment.findOneAndUpdate(
+  Comment.findOne({ _id: req.params.id }).then((data) => {
+    let userComment = data.userId.toLocaleString().split('"');
+    console.log(userComment[0]);
+    User.findOne({ _id: req.auth.userId }).then((user) => {
+      let admin = user.isAdmin;
+      if (userComment[0] === req.auth.userId || admin) {
+      Comment.findOneAndUpdate(
         { _id: req.params.id },
         {
-            ...req.body,
-            date: newDate(),
-            chrono: Date.now(),
+          ...req.body,
+          date: newDate(),
+          chrono: Date.now(),
         },
         { new: true },
         function (err, doc) {
-            if (err) {
+          if (err) {
             res.status(500).json({ error });
-            } else {
-            res.status(200).json({ doc });
-            }
+          } else {
+            res.status(200).json( doc );
+          }
         }
-        );
+      );
     } else {
-        res.status(401).json("Unauthorized request");
+      res.status(401).json("Unauthorized request");
     }
-    })
+  });
+})
 };

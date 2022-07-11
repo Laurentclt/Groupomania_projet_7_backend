@@ -62,12 +62,14 @@ exports.updateUser = (req, res, next) => {
     User.findOne({ _id: req.auth.userId })
     .then(user => {
         if (req.file) {
+            if (user.imageProfil !== undefined) {
             const filename = user.imageProfil.split('/images/')[1];
             fs.unlink(`images/${filename}`, (error) => {
                   if (error) {
                   console.log("pas d'image")
                   }
               })
+            }
         }   
    
     User.findOneAndUpdate( {_id: req.auth.userId},
