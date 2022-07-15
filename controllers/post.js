@@ -103,7 +103,7 @@ exports.addPost = (req, res, next) => {
 // vérification effectuée !
 exports.deletePost = (req, res, next) => {
   Post.findOne({ _id: req.params.id }).then((data) => {
-    let userPost = data.userId.toLocaleString().split('"');
+    let userPost = data.userId.toString()
     console.log(userPost[0]);
     User.findOne({ _id: req.auth.userId }).then((data) => {
       console.log(data.isAdmin);
@@ -135,11 +135,12 @@ exports.deletePost = (req, res, next) => {
 // vérification effectuée !
 exports.updatePost = (req, res, next) => {
   Post.findOne({ _id: req.params.id }).then((post) => {
-    let userPost = post.userId.toLocaleString().split('"');
-    console.log(userPost[0]);
+    console.log(post.userId)
+    let userPost = post.userId.toString()
+    console.log(userPost);
     User.findOne({ _id: req.auth.userId }).then((user) => {
       let admin = user.isAdmin;
-      if (userPost[0] === req.auth.userId || admin) {
+      if (userPost === req.auth.userId || admin) {
         if (req.file) {
           const filename = post.imageUrl.split("/images/")[1];
           fs.unlink(`images/${filename}`, (error) => {
