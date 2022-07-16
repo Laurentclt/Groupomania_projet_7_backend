@@ -49,6 +49,14 @@ exports.login = (req, res, next) => {
 }
 
 
+exports.getOneUser = (req, res, next) => {
+    User.findOne({_id: req.params.id})
+    .then(user => {
+        res.status(200).json(user);
+    })
+    .catch((e) => new Error (`utilisateur non trouvé : ${e}`))   
+}
+
 // vérifié, problème lorsque changement d'image de profil, seulement l'image dans le header change. les images dans les posts nécéssitent un refresh pour s'actualiser
 exports.updateUser = (req, res, next) => {
     User.findOne({ _id: req.auth.userId })
