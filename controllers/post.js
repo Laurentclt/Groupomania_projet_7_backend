@@ -90,10 +90,8 @@ exports.addPost = (req, res, next) => {
     .save()
     .then((post) => {
       User.find({ _id: req.auth.userId }).then((user) => {
-        console.log({ user });
         const copyPost = JSON.parse(JSON.stringify(post));
         copyPost.user = user;
-        console.log(copyPost);
         res.status(201).json(copyPost);
       });
     })
@@ -104,12 +102,11 @@ exports.addPost = (req, res, next) => {
 exports.deletePost = (req, res, next) => {
   Post.findOne({ _id: req.params.id }).then((data) => {
     let userPost = data.userId.toString()
-    console.log(userPost[0]);
     User.findOne({ _id: req.auth.userId }).then((data) => {
       console.log(data.isAdmin);
       let admin = data.isAdmin;
 
-      if (userPost[0] === req.auth.userId || admin) {
+      if (userPost === req.auth.userId || admin) {
         Post.findOneAndDelete({ _id: req.params.id }, function (err, doc) {
           if (err) {
             res.status(500).json({ error });
@@ -120,12 +117,11 @@ exports.deletePost = (req, res, next) => {
                 console.log("pas d'image");
               }
             });
-            console.log(doc);
             res.status(200).json(doc);
           }
         });
       } else {
-        res.status(401).json("Unauhtorized request");
+        res.status(401).json("Unauthorized request");
       }
     });
   });
@@ -135,9 +131,7 @@ exports.deletePost = (req, res, next) => {
 // vérification effectuée !
 exports.updatePost = (req, res, next) => {
   Post.findOne({ _id: req.params.id }).then((post) => {
-    console.log(post.userId)
     let userPost = post.userId.toString()
-    console.log(userPost);
     User.findOne({ _id: req.auth.userId }).then((user) => {
       let admin = user.isAdmin;
       if (userPost === req.auth.userId || admin) {
@@ -204,7 +198,6 @@ exports.addLike = (req, res, next) => {
 
 // vérification effectuée
 exports.addComment = (req, res, next) => {
-  console.log(req.params.id);
   let comment = new Comment({
     ...req.body,
     userId: req.auth.userId,
@@ -229,11 +222,10 @@ exports.addComment = (req, res, next) => {
 // vérification effectuée
 exports.deleteComment = (req, res, next) => {
   Comment.findOne({ _id: req.params.id }).then((data) => {
-    let userComment = data.userId.toLocaleString().split('"');
-    console.log(userComment[0]);
+    let userComment = data.userId.toString()
     User.findOne({ _id: req.auth.userId }).then((user) => {
       let admin = user.isAdmin;
-      if (userComment[0] === req.auth.userId || admin) {
+      if (userComment === req.auth.userId || admin) {
         Comment.findOneAndDelete({ _id: req.params.id }, function (err, doc) {
           if (err) {
             res.status(500).json({ error });
@@ -251,11 +243,11 @@ exports.deleteComment = (req, res, next) => {
 // minuscule problème lors de l'update la chronologie n'est pas respecté => voir front pour regler le soucis
 exports.updateComment = (req, res, next) => {
   Comment.findOne({ _id: req.params.id }).then((data) => {
-    let userComment = data.userId.toLocaleString().split('"');
-    console.log(userComment[0]);
+    let userComment = data.userId.toString()
+   
     User.findOne({ _id: req.auth.userId }).then((user) => {
       let admin = user.isAdmin;
-      if (userComment[0] === req.auth.userId || admin) {
+      if (userComment === req.auth.userId || admin) {
       Comment.findOneAndUpdate(
         { _id: req.params.id },
         {

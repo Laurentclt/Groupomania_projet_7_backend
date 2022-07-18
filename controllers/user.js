@@ -90,23 +90,30 @@ exports.updateUser = (req, res, next) => {
     })
 }
 exports.deleteUser = (req, res, next) => {
-    if (req.body.userId !== req.auth.userId) {
+    User.findOne({ _id: req.auth.userId })
+    .then(user => {
+       let stringUserId = user._id.toString()
+    if ( stringUserId !== req.auth.userId) {
         res.status(401).json({
           error: new Error("requête non autorisée!").message,
         });
-    }
-    User.findOneAndDelete( {_id: req.body.userId}, function (err, doc) {
+    }else {
+    User.findOneAndDelete( {_id: req.auth.userId}, function (err, doc) {
         if (err) {
             res.status(500).json({ error })
         }
         else {
+        if (doc.imageUrl !== undefined) {
         const filename = doc.imageUrl.split('/images/')[1];
         fs.unlink(`images/${filename}`, (error) => {
             if (error) {
-            res.status(500).json({message: error})
+            console.log("erreur lors de la suprression de l'image")
             }
         })
+        }
             res.status(200).json({ message : `compte supprimé : ${doc} `})
         }
+    })
+    }
     })
 }
