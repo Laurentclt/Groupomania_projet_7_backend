@@ -1,8 +1,10 @@
+require('dotenv').config()
+
 const express = require('express');
 const mongoose = require('mongoose')
 const path = require('path')
-
-mongoose.connect('mongodb+srv://laurent:collet@groupomania.bvj4dic.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true,
+const logMongo = process.env.LOG_MONGODB
+mongoose.connect(logMongo, { useNewUrlParser: true,
 useUnifiedTopology: true })
 .then(() => console.log('Connexion à MongoDB réussie !'))
 .catch(() => console.log('Connexion à MongoDB échouée !'));
